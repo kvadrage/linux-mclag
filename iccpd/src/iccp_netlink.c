@@ -404,7 +404,7 @@ void iccp_event_handler_obj_input_newlink(struct nl_object *obj, void *arg)
     struct rtnl_link *link;
     unsigned int *event = arg;
     uint32_t ifindex;
-    char * ifname;
+    char *ifname, *iftype;
     struct LocalInterface *lif = NULL;
     struct nl_addr *nl_addr;
     int addr_type = 0;
@@ -414,8 +414,19 @@ void iccp_event_handler_obj_input_newlink(struct nl_object *obj, void *arg)
     ifindex = rtnl_link_get_ifindex(link);
     op_state = rtnl_link_get_operstate(link);
     ifname = rtnl_link_get_name(link);
+    iftype = rtnl_link_get_type(link);
     nl_addr = rtnl_link_get_addr(link);
     
+    // treat all ports without type as regular ports
+    // except loopback device
+    if (iftype == NULL) {
+        if (ifindex == 1) {
+            iftype = "loopback";
+        } else {
+            iftype = "port";
+        }
+    }
+
     if (nl_addr)
         addr_type = nl_addr_guess_family(nl_addr);
 
@@ -424,16 +435,18 @@ void iccp_event_handler_obj_input_newlink(struct nl_object *obj, void *arg)
     if (!lif)
     {
         const itf_type_t if_whitelist[] = {
-            {"Po",IF_T_PORT_CHANNEL},
-            {"Vl", IF_T_VLAN},
-            {"Eth", IF_T_PORT},
-            {NULL, 0} };
+            {"port", IF_T_PORT},
+            {"team",IF_T_PORT_CHANNEL},
+            {"bond",IF_T_PORT_CHANNEL},
+            {"bridge", IF_T_VLAN},
+            {"vlan", IF_T_VLAN},
+            {NULL, -1} };
         int i = 0;
 
-        for (i = 0; if_whitelist[i].ifname != NULL ; ++i) 
+        for (i = 0; if_whitelist[i].iftype != NULL ; ++i) 
         {
-            if ((strncmp(ifname,
-                if_whitelist[i].ifname, strlen(if_whitelist[i].ifname)) == 0)) 
+            if ((strncmp(iftype,
+                if_whitelist[i].iftype, strlen(if_whitelist[i].iftype)) == 0)) 
             {
                 lif = local_if_create(ifindex, ifname, if_whitelist[i].type);
 		

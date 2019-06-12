@@ -49,7 +49,7 @@
 #define IF_T_VLAN         2
 
 typedef struct {
-    char *ifname;
+    char *iftype;
     int type;
 } itf_type_t;
 
