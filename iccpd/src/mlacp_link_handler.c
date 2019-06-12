@@ -405,18 +405,21 @@ void update_peerlink_isolate_from_all_csm_lif (
     /*traverse all portchannel member port and send msg to syncd */
     LIST_FOREACH(lif, &(MLACP(csm).lif_list), mlacp_next)
     {
+        /* check pif port state and lif pochannel state */
         if(lif->type !=IF_T_PORT_CHANNEL)
             continue;
             
-       /* check pif port state and lif pochannel state */
-	if(lif->isolate_to_peer_link == 1)
-	{
 		/* need to isolate port,  get it's member name */
 		if(strlen(mlag_po_buf) != 0)
 		    dst_len += snprintf(mlag_po_buf+dst_len, sizeof(mlag_po_buf)-dst_len, "%s",",");
-		    
-		dst_len += snprintf(mlag_po_buf+dst_len, sizeof(mlag_po_buf)-dst_len, "%s", lif->portchannel_member_buf);		
-	}
+        
+        if(lif->isolate_to_peer_link == 1)
+        {		    
+            dst_len += snprintf(mlag_po_buf+dst_len, sizeof(mlag_po_buf)-dst_len, "%s", lif->portchannel_member_buf);		
+        } else {
+            /* if isolation is removed, prepend port name with '!'  */
+            dst_len += snprintf(mlag_po_buf+dst_len, sizeof(mlag_po_buf)-dst_len, "!%s", lif->portchannel_member_buf);	
+        }
     }
 	
     sub_msg->op_len = dst_len;
