@@ -1281,7 +1281,7 @@ int iccp_connect_syncd()
 #ifdef HAVE_STRUCT_SOCKADDR_IN_SIN_LEN
     serv.sin_len = sizeof(struct sockaddr_in);
 #endif /* HAVE_STRUCT_SOCKADDR_IN_SIN_LEN */
-    serv.sin_addr.s_addr = htonl(0x7f000006);
+    serv.sin_addr.s_addr = htonl(0x7f000001);
 
     ret = connect(fd, (struct sockaddr *)&serv, sizeof(serv));
     if (ret < 0) {
