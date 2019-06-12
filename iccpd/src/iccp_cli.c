@@ -69,11 +69,11 @@ int set_peer_link(int mid, const char* ifname)
 
     len = strlen(ifname);
 
-    if (strncmp(ifname, "Eth", 3) != 0 && strncmp(ifname, "Por", 3) != 0)
-    {
-        ICCPD_LOG_ERR(__FUNCTION__, "Peer-link is %s, must be Ethernet or PortChannel", ifname);
-        return -1;
-    }
+    // if (strncmp(ifname, "Eth", 3) != 0 && strncmp(ifname, "Por", 3) != 0)
+    // {
+    //     ICCPD_LOG_ERR(__FUNCTION__, "Peer-link is %s, must be Ethernet or PortChannel", ifname);
+    //     return -1;
+    // }
     
     csm = system_get_csm_by_mlacp_id(mid);
     if(csm == NULL) return -1;
@@ -274,11 +274,11 @@ int iccp_cli_attach_mclag_domain_to_port_channel( int domain, const char* ifname
     if (!ifname)
         return -1;
     
-    if(strncmp(ifname, "Po", 2)!=0) {
-        ICCPD_LOG_DEBUG(__FUNCTION__,
-                        "attach interface(%s) is not a port-channel", ifname);
-        return -1;
-    }
+    // if(strncmp(ifname, "Po", 2)!=0) {
+    //     ICCPD_LOG_DEBUG(__FUNCTION__,
+    //                     "attach interface(%s) is not a port-channel", ifname);
+    //     return -1;
+    // }
     
     csm = system_get_csm_by_mlacp_id(domain);
     if (csm == NULL) {
@@ -289,6 +289,11 @@ int iccp_cli_attach_mclag_domain_to_port_channel( int domain, const char* ifname
     lif = local_if_find_by_name(ifname);
     if (lif) 
     {
+        if (lif->type != IF_T_PORT_CHANNEL) {
+            ICCPD_LOG_DEBUG(__FUNCTION__,
+                            "attach interface(%s) is not a port-channel", ifname);
+            return -1;           
+        }
     	mlacp_bind_port_channel_to_csm(csm, ifname);
     }
 	
@@ -322,11 +327,11 @@ int iccp_cli_detach_mclag_domain_to_port_channel( const char* ifname)
     if (!ifname)
         return -1;
     
-    if (strncmp(ifname, "Po", 2)!=0) {
-        ICCPD_LOG_DEBUG(__FUNCTION__,
-                        "detach interface(%s) is not a port-channel",  ifname);
-        return -1;
-    }
+    // if (strncmp(ifname, "Po", 2)!=0) {
+    //     ICCPD_LOG_DEBUG(__FUNCTION__,
+    //                     "detach interface(%s) is not a port-channel",  ifname);
+    //     return -1;
+    // }
     
     /* find po*/
     if (!(lif_po = local_if_find_by_name(ifname))
