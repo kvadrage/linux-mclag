@@ -452,7 +452,7 @@ static void set_peerlink_mlag_port_isolate (
     csm->isolate_update_time = time(NULL);
     
     /* Kernel also needs to block traffic from peerlink to mlag-port*/
-    set_peerlink_mlag_port_kernel_forward(csm, lif, enable);
+    // set_peerlink_mlag_port_kernel_forward(csm, lif, enable);
 	
     return;
 }
