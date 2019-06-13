@@ -52,7 +52,7 @@ This daemon implements a shim layer between generic ICCPD and SONiC APP_DB API t
 More information: https://github.com/shine4chen/SONiC/blob/mclag/doc/Sonic-mclag-hld-v0.6.md#92-add-mclagsyncd-process 
 
 ## MC-LAG for Linux
-In order to support MC-LAG feature in Linux, original ICCPD implementation from SONiC can be used almost as if (with some minor changes).
+In order to support MC-LAG feature in Linux, original ICCPD implementation from SONiC can be used almost as is (with some minor changes).
 To implement SONiC-specific interfaces in native Linux, mclagsyncd was rewritten to achieve the same functionality using Linux APIs.
 
 ### ICCPD
