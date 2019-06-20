@@ -365,7 +365,7 @@ class MCLAGSyncHandler(asyncore.dispatcher_with_send):
             elif hdr.msg_type == MCLAG_MSG_TYPE_FLUSH_FDB_BY_PORT:
                 msg = self.mclag_msg_fdb_flush_by_port(msg)
             elif hdr.msg_type == MCLAG_MSG_TYPE_SET_INTF_MAC:
-                msg = mclag_msg_intf_mac(msg)
+                msg = self.mclag_msg_intf_mac(msg)
             elif hdr.msg_type == MCLAG_MSG_TYPE_SET_FDB:
                 msg = self.mclag_msg_set_fdb_entry(msg, msg_len-MCLAG_MSG_HDR_LEN)
             elif hdr.msg_type == MCLAG_MSG_TYPE_GET_FDB_CHANGES:
