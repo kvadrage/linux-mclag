@@ -29,6 +29,39 @@
 #include "../include/system.h"
 #include "../include/iccp_csm.h"
 
+static uint32_t one_at_a_time_hash(const char *key, size_t len)
+{
+    uint32_t hash, i;
+    for(hash = i = 0; i < len; ++i)
+    {
+        hash += key[i];
+        hash += (hash << 10);
+        hash ^= (hash >> 6);
+    }
+    hash += (hash << 3);
+    hash ^= (hash >> 11);
+    hash += (hash << 15);
+    return hash;
+}
+
+static int get_portchannel_id_from_ifname(const char *ifname) {
+    int i;
+    int len;
+    if (ifname == NULL)
+        return -1;
+    len = strlen(ifname);
+
+    // try to derive portchannel ID from its name (eg: Portchannel10 => 10)   
+    for(i=0; i<len; ++i)
+        if(ifname[i] >= '0' && ifname[i] <= '9')
+            break;    
+    if(i < len)
+        return atoi(&ifname[i]);
+
+    // otherwize return hash function result as portchannel ID
+    return one_at_a_time_hash(ifname, len);
+}
+
 /* Ethernet MAC Address setter - set by string. */
 static void ether_mac_set_addr_with_string(uint8_t* macdst, const char* macstr)
 {
@@ -160,20 +193,8 @@ struct LocalInterface* local_if_create(int ifindex, char* ifname, int type)
     local_if->ifindex = ifindex;
     local_if->type = type;
 
-    if(local_if->type == IF_T_PORT_CHANNEL)
-    {
-        int i;
-        int len;
-        len = strlen(ifname);
-        
-        for(i=0; i<len; ++i)
-            if(ifname[i] >= '0' && ifname[i] <= '9')
-                break;
-        
-        if(i >= len)
-            return NULL;
-
-        local_if->po_id =  atoi(&ifname[i]);
+    if(local_if->type == IF_T_PORT_CHANNEL) {
+        local_if->po_id = get_portchannel_id_from_ifname(ifname);
     }
 
     if (ifname)
