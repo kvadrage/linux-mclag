@@ -243,18 +243,34 @@ def mclag_set_fdb_flush_by_port(port):
     shell_cmd("ip link set dev %s type bridge_slave fdb_flush" % (port))
 
 def mclag_set_intf_mac(intf_name, mac_addr):
+    info_kind = ""
+    info_slave_kind = ""
     logger.debug("Set interface mac address: intf=%s, mac=%s", intf_name, mac_addr)
+    res = json.loads(shell_cmd("ip -j -d link sh %s" % (intf_name)))
 
+    if res.get("linkinfo", None):
+        info_kind = res["linkinfo"]
+        info_slave_kind = res["info_slave_kind"]
 
-def mclag_set_fdb_entry(fdb, delete=True):
-    logger.debug("FDB entry add: %s", fdb)
+    # intf is a portchannel enslaved to a bridge device (L2)
+    if info_kind in ("team", "bond") and info_slave_kind == "bridge":
+        # disable ipv6 link-local autoconfig
+        if res.get("inet6_addr_gen_mode") != "none":
+            shell_cmd("ip link set dev %s addrgenmode none" % (intf_name))
+        # flush all IP addresses
+        shell_cmd("ip addr flush dev %s" % (intf_name))
+        shell_cmd("ip link set dev %s address %s" % (intf_name, mac_addr))
+    else:
+        logger.warning("Setting MAC address is not supported on %s (kind: %s, slave_kind: %s)", intf_name, info_kind, info_slave_kind)
+
+def mclag_set_fdb_entry(fdb, delete=False):
+    action = "del" if delete else "add"
+    logger.debug("FDB entry %s: %s", action, fdb)
     action = "del" if delete else "replace"
     if fdb.fdb_type == MCLAG_FDB_TYPE_STATIC:
         fdb_type = "static"
-    elif fdb.fdb_type == MCLAG_FDB_TYPE_DYNAMIC:
-        fdb_type = "dynamic"
     else:
-        fdb_type = ""
+        fdb_type = "dynamic"
     master = "master" if fdb.master else ""
     extern_learn = "extern_learn" if fdb.extern_learn else ""
     shell_cmd("bridge fdb %s %s dev %s %s %s %s vlan %d" % (
@@ -349,7 +365,7 @@ class MCLAGSyncHandler(asyncore.dispatcher_with_send):
             elif hdr.msg_type == MCLAG_MSG_TYPE_FLUSH_FDB_BY_PORT:
                 msg = self.mclag_msg_fdb_flush_by_port(msg)
             elif hdr.msg_type == MCLAG_MSG_TYPE_SET_INTF_MAC:
-                pass
+                msg = mclag_msg_intf_mac(msg)
             elif hdr.msg_type == MCLAG_MSG_TYPE_SET_FDB:
                 msg = self.mclag_msg_set_fdb_entry(msg, msg_len-MCLAG_MSG_HDR_LEN)
             elif hdr.msg_type == MCLAG_MSG_TYPE_GET_FDB_CHANGES:
@@ -488,9 +504,6 @@ class MCLAGSyncHandler(asyncore.dispatcher_with_send):
                 self.send(send_buf)
                 send_msg_len = 0
                 send_buf = bytearray()
-            # skip FDB entry if it was learned from MLAG peer
-            if fdb.extern_learn:
-                continue
             fdb_info = mclag_fdb_info()
             fdb_info.mac = fdb.mac.encode("utf-8")
             fdb_info.vid = ctypes.c_uint(fdb.vid)
@@ -523,23 +536,23 @@ class MCLAGSyncHandler(asyncore.dispatcher_with_send):
             vid = fdb_info.vid
             port_name = fdb_info.port_name.decode("utf-8")
             fdb_type = fdb_info.type
-            fdb = FDBEntry(mac, vid, port_name, fdb_type, master="unknown", extern_learn=True)
+            fdb = FDBEntry(mac, vid, port_name, fdb_type, master="unknown", extern_learn=False)
 
             if fdb_info.op_type == MCLAG_FDB_OPER_ADD:
                 exist = self.old_fdb_table.find(fdb)
                 if exist:
                     for old in exist:
                         self.old_fdb_table.remove(old)
-                self.old_fdb_table[fdb.mac].add(fdb)
-                mclag_set_fdb_entry(fdb, delete=False)
+                self.old_fdb_table[mac].add(fdb)
+                mclag_set_fdb_entry(fdb)
             elif fdb_info.op_type == MCLAG_FDB_OPER_DEL:
                 exist = self.old_fdb_table.find(fdb)
                 if exist:
                     for old in exist:
                         self.old_fdb_table.remove(old)
-                    mclag_set_fdb_entry(fdb, delete=True)  
                 else:
-                    logger.debug("Non-existent FDB entry to remove: %s", fdb)              
+                    logger.debug("Non-existent FDB entry in local cache to remove: %s", fdb)   
+                mclag_set_fdb_entry(fdb, delete=True)             
             else:
                 logger.debug("Unknown FDB operation: %d", fdb_info.op_type)
         return msg
