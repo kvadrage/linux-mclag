@@ -82,6 +82,10 @@ Check [examples](https://github.com/kvadrage/linux-mclag/tree/master/examples) f
 - iccpd is not working if compiled with GCC 7 - segfaults after nl_cli_connect() call
   - Need gcc version 4.8.5
 - No daemonization supported yet
+- [Customized teamd](https://github.com/kvadrage/libteam/tree/mlag_fixes_2) is needed with additional patches:
+   - [teamd: lacp: allow user to set LACP System ID via config (runner.system_id)](https://github.com/kvadrage/libteam/commit/913ae060a7c38ee3f852392e11800ccccbcbe941)
+   - [teamd: lacp: introduce support for multiple hwaddr policies](https://github.com/kvadrage/libteam/commit/53546fe30677a421e432c25f1d1f3cb1687d14e5)
+
 
 ### ToDo
 - Prepare automated test setup for MC-LAG in Vagrant
