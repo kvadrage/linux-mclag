@@ -449,7 +449,11 @@ void iccp_event_handler_obj_input_newlink(struct nl_object *obj, void *arg)
                 if_whitelist[i].iftype, strlen(if_whitelist[i].iftype)) == 0)) 
             {
                 lif = local_if_create(ifindex, ifname, if_whitelist[i].type);
-		
+
+                if (lif == NULL) {
+                    printf("%s: local_if_create failed: ifindex=%d, ifname=%s, type: %d\n", ifindex, ifname, if_whitelist[i].type);
+                    return;
+                }
 
                 lif->state = PORT_STATE_DOWN;
               
