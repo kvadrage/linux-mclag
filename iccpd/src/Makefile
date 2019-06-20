@@ -27,8 +27,9 @@ HEADERS = ../include/app_csm.h ../include/cmd_option.h ../include/iccp_cli.h \
 ../include/iccp_consistency_check.h ../include/route_info.h  \
 ../include/iccp_netlink.h
 
-//CFLAGS  = -g -O2 -fstack-protector-strong -Wformat -Werror=format-security  $(LIBNL_CFLAGS) -I../include/ 
-CFLAGS  = -g -O2 -fstack-protector-strong -Wformat -Werror=format-security  -I../include/ $(LIBNL_CFLAGS) 
+#//CFLAGS  = -g -O2 -fstack-protector-strong -Wformat -Werror=format-security  $(LIBNL_CFLAGS) -I../include/ 
+#CFLAGS  = -g -O2 -fstack-protector-strong -Wformat -Werror=format-security  -I../include/ $(LIBNL_CFLAGS) -fPIC
+CFLAGS  = -g -O2 -Wformat -Werror=format-security  -I../include/ $(LIBNL_CFLAGS)
 LDFLAGS = $(LIBNL_LIBS) -lpthread
 LDADD   = $(LIBZEBRA_BIN) 
 
