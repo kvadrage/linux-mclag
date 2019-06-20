@@ -69,13 +69,24 @@ The following features are currently supported as part of **protocol version 1**
 - Sync and update MAC address table
 - Isolate peerlink interface
 
+### Example configurations
+Check [examples](https://github.com/kvadrage/linux-mclag/tree/master/examples) folder.
+
 ### Tested OS
-**ICCPD** with **mclagsyncd.py** were tested together on Debian Stretch VMs in a virtual environment.
+**ICCPD** with **mclagsyncd.py** were tested together in the following envirinments:
+- VM setup running Debian Stretch
+- HW Switches running Linux [switchdev](https://github.com/Mellanox/mlxsw/wiki/Overview) on Ubuntu 18.04 (Mellanox Spectrum)
+
+### Caveats
+- Still at early stage (alpha version?)
+- iccpd is not working if compiled with GCC 7 - segfaults after nl_cli_connect() call
+  - Need gcc version 4.8.5
+- No daemonization supported yet
 
 ### ToDo
 - Prepare automated test setup for MC-LAG in Vagrant
 - Prepare Dockerfiles to build and tun ICCPD and mclagsyncd.py
-- Test MC-LAG on real HW switches running Linux with [switchdev](https://github.com/mellanox/mlxsw/wiki)
+- ~~Test MC-LAG on real HW switches running Linux with [switchdev](https://github.com/mellanox/mlxsw/wiki)~~
 
 ## Credits
 - jianjun, grace Li from nephos
